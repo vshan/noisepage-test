@@ -16,7 +16,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 2,
-  "iteration": 1593663062607,
+  "iteration": 1593664292426,
   "links": [],
   "panels": [
     {
@@ -51,7 +51,7 @@
       "fill": 0,
       "fillGradient": 0,
       "gridPos": {
-        "h": 12,
+        "h": 14,
         "w": 13,
         "x": 0,
         "y": 0
@@ -321,6 +321,312 @@
       "title": "Commit ID",
       "transformations": [],
       "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": -10
+              },
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "terminals"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "purple",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Change"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 11,
+        "x": 13,
+        "y": 2
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "/.*/",
+          "values": true
+        }
+      },
+      "pluginVersion": "7.0.3",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT distinct terminals,\n  (FIRST_VALUE(CAST(result->>'throughput' AS DOUBLE PRECISION)) OVER(PARTITION BY terminals order by time desc) -\n  FIRST_VALUE(CAST(result->>'throughput' AS DOUBLE PRECISION)) OVER(PARTITION BY terminals order by time asc)) / \n  FIRST_VALUE(CAST(result->>'throughput' AS DOUBLE PRECISION)) OVER(PARTITION BY terminals order by time desc) * 100 as \"Change\"\n   \nFROM test_table\nWHERE\n   $__timeFilter(time) AND \n   benchmark_type = '$Type'\nORDER BY 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "$Type - % Change",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "terminals = 16\n\nclient-time = 60",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "terminals"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "purple",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 13,
+        "y": 9
+      },
+      "id": 9,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "/.*/",
+          "values": true
+        }
+      },
+      "pluginVersion": "7.0.3",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  terminals,\n  result->>'throughput' as \"throughput\"\nFROM test_table\nWHERE\n  id IN (SELECT\n      DISTINCT ON (terminals) id\n    FROM test_table\n    WHERE\n      $__timeFilter(time) AND\n      benchmark_type = '$Type'\n    GROUP BY time, terminals, id\n    ORDER BY terminals, time desc) AND\n  $__timeFilter(time) AND\n  benchmark_type = '$Type'\nORDER BY result->>'throughput' ASC\nLIMIT 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Last $Type - Worst",
+      "type": "stat"
+    },
+    {
+      "datasource": null,
+      "description": "terminals = 16\n\nclient-time = 60",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "terminals"
+            },
+            "properties": [
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "purple",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 4,
+        "x": 17,
+        "y": 9
+      },
+      "id": 11,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "/.*/",
+          "values": true
+        }
+      },
+      "pluginVersion": "7.0.3",
+      "targets": [
+        {
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  terminals,\n  result->>'throughput' as \"throughput\"\nFROM test_table\nWHERE\n  id IN (SELECT\n      DISTINCT ON (terminals) id\n    FROM test_table\n    WHERE\n      $__timeFilter(time) AND\n      benchmark_type = '$Type'\n    GROUP BY time, terminals, id\n    ORDER BY terminals, time desc) AND\n  $__timeFilter(time) AND\n  benchmark_type = '$Type'\nORDER BY result->>'throughput' DESC\nLIMIT 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Last $Type - Best",
+      "type": "stat"
     }
   ],
   "refresh": false,
@@ -377,5 +683,5 @@
   "timezone": "",
   "title": "Terminals scalability",
   "uid": "djDf5vGGk",
-  "version": 14
+  "version": 18
 }
